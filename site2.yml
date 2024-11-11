@@ -19,6 +19,12 @@
         aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       when: backup_result.rc == 0
 
+    - name: Delete local backup after upload
+      file:
+        path: "/home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump"
+        state: absent
+      when: s3_upload_result.rc == 0
+
 
     
       

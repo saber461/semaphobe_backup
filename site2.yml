@@ -1,9 +1,13 @@
 - hosts: all
   become: true
   tasks:
-    - name: Backup Odoo database
-      shell: . /home/ejad-sysadmin/.backup_env && curl -X POST -F "master_pwd=$MASTER_PWD" \
-                                           -F "name=$DB_NAME" \
-                                           -F "backup_format=dump" \
-                                           -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump \
-                                           http://localhost:8069/web/database/backup
+    - name: Source environment variables and backup Odoo database
+      shell: |
+        . /home/ejad-sysadmin/.backup_env && \
+        curl -X POST -F "master_pwd=$MASTER_PWD" \
+                     -F "name=$DB_NAME" \
+                     -F "backup_format=dump" \
+                     -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump \
+                     http://localhost:8069/web/database/backup
+      args:
+        executable: /bin/bash

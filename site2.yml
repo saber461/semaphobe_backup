@@ -44,11 +44,11 @@
         executable: /bin/bash
       register: backup_result
 
-    - name: Source AWS credentials and copy backup dump to S3
+    - name: Source AWS credentials and copy backup zip to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
         . /home/ejad-sysadmin/.backup_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/"{{ lookup('file', '/home/ejad-sysadmin/.backup_env') }}"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
       when: backup_result.rc == 0

@@ -15,8 +15,8 @@
 
     - name: Source AWS credentials and copy backup dump to S3
       shell: |
-        . /home/ejad-sysadmin/.aws_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/"{{ lookup('file', '/home/ejad-sysadmin/.backup_env') }}"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
+        . /home/ejad-sysadmin/.aws_env && /home/ejad-sysadmin/.backup_env &&\
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
       when: backup_result.rc == 0
@@ -33,7 +33,7 @@
 
     - name: Source environment variables and backup Odoo database zip
       shell: |
-        . /home/ejad-sysadmin/.backup_env && \
+        . /home/ejad-sysadmin/.backup_env && /home/ejad-sysadmin/.backup_env && \
         curl -X POST -F "master_pwd=$MASTER_PWD" \
                      -F "name=$DB_NAME" \
                      -F "backup_format=zip" \

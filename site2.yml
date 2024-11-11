@@ -23,12 +23,12 @@
       when: backup_result.rc == 0
       register: s3_upload_result
 
-    # - name: Delete all files and directories inside backup folder after upload
-    #   shell: |
-    #     rm -rf /home/ejad-sysadmin/backup/*
-    #   when: s3_upload_result.rc == 0
-    #   args:
-    #     executable: /bin/bash
+    - name: Delete all files and directories inside backup folder after upload
+      shell: |
+        rm -rf /home/ejad-sysadmin/backup/*
+      when: s3_upload_result.rc == 0
+      args:
+        executable: /bin/bash
 
 
 
@@ -54,12 +54,12 @@
       when: backup_result.rc == 0
       register: s3_upload_result
 
-    # - name: Delete all files and directories inside backup folder after upload
-    #   shell: |
-    #     rm -rf /home/ejad-sysadmin/backup/*
-    #   when: s3_upload_result.rc == 0
-    #   args:
-    #     executable: /bin/bash
+    - name: Delete all files and directories inside backup folder after upload
+      shell: |
+        rm -rf /home/ejad-sysadmin/backup/*
+      when: s3_upload_result.rc == 0
+      args:
+        executable: /bin/bash
 
 
     

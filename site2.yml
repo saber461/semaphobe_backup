@@ -1,7 +1,7 @@
 - hosts: all
   become: true
   tasks:
-    - name: Source environment variables and backup Odoo database
+    - name: Source environment variables and backup Odoo database dump
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
         curl -X POST -F "master_pwd=$MASTER_PWD" \
@@ -13,8 +13,12 @@
         executable: /bin/bash
       register: backup_result
 
-    - name: Source AWS credentials and copy backup to S3
+    - name: Source AWS credentials and copy backup dump to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump s3://ejad-sys-bkp/erp-sa/
+        aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       when: backup_result.rc == 0
+
+
+    
+      

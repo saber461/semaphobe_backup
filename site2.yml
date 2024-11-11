@@ -31,7 +31,7 @@
 
 
 
-     - name: Source environment variables and backup Odoo database zip
+    - name: Source environment variables and backup Odoo database zip
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
         curl -X POST -F "master_pwd=$MASTER_PWD" \

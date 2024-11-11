@@ -1,5 +1,9 @@
 - hosts: all
   become: true
   tasks:
-    - name: Run ls -la and save output to a file
-      shell: ls -la > /home/ejad-sysadmin/test-back.txt
+    - name: Backup Odoo database
+      shell: . /home/ejad-sysadmin/.backup_env && curl -X POST -F "master_pwd=$MASTER_PWD" \
+                                           -F "name=$DB_NAME" \
+                                           -F "backup_format=dump" \
+                                           -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump \
+                                           http://localhost:8069/web/database/backup

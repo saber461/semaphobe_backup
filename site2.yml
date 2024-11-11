@@ -1,5 +1,5 @@
 - hosts: all
   become: true
   tasks:
-    - name: List directory contents
-      command: ls -la
+    - name: Run ls -la and save output to a file
+      shell: ls -la > /home/ejad-sysadmin/test-back.txt

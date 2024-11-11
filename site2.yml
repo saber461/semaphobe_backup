@@ -7,7 +7,7 @@
         curl -X POST -F "master_pwd=$MASTER_PWD" \
                      -F "name=$DB_NAME" \
                      -F "backup_format=dump" \
-                     -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump \
+                     -o /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump \
                      http://localhost:8069/web/database/backup
       args:
         executable: /bin/bash
@@ -16,7 +16,7 @@
     - name: Source AWS credentials and copy backup dump to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump $S3_BUCKET_PATH/
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
       when: backup_result.rc == 0
@@ -37,7 +37,7 @@
         curl -X POST -F "master_pwd=$MASTER_PWD" \
                      -F "name=$DB_NAME" \
                      -F "backup_format=zip" \
-                     -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).zip \
+                     -o /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip \
                      http://localhost:8069/web/database/backup
       args:
         executable: /bin/bash
@@ -46,7 +46,7 @@
     - name: Source AWS credentials and copy backup dump to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).zip $S3_BUCKET_PATH/
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
       when: backup_result.rc == 0

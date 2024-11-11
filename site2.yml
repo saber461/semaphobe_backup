@@ -13,7 +13,8 @@
         executable: /bin/bash
       register: backup_result
 
-    - name: Copy backup to S3
+    - name: Source AWS credentials and copy backup to S3
       shell: |
+        . /home/ejad-sysadmin/.aws_env && \
         aws s3 cp /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump s3://ejad-sys-bkp/erp-sa/
       when: backup_result.rc == 0

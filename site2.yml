@@ -4,7 +4,7 @@
     - name: Source environment variables and backup Odoo database dump
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
-        curl -X POST -F "master_pwd=$MASTER_PWD" \
+        curl -X POST -F "master_pwd=tZ:~&82n%]j`?!9Lmky;4" \
                      -F "name=$DB_NAME" \
                      -F "backup_format=dump" \
                      -o /home/ejad-sysadmin/backup/odoo_backup_$(date +%Y%m%d).dump \

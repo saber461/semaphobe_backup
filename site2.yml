@@ -1,27 +1,27 @@
 - hosts: all
   become: true
   tasks:
-    - name: Source environment variables and backup Odoo database dump
-      shell: |
-        . /home/ejad-sysadmin/.backup_env && \
-        curl -X POST -F "master_pwd=$MASTER_PWD" \
-                     -F "name=$DB_NAME" \
-                     -F "backup_format=dump" \
-                     -o /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump \
-                     http://localhost:8069/web/database/backup
-      args:
-        executable: /bin/bash
-      register: backup_result
+    # - name: Source environment variables and backup Odoo database dump
+    #   shell: |
+    #     . /home/ejad-sysadmin/.backup_env && \
+    #     curl -X POST -F "master_pwd=$MASTER_PWD" \
+    #                  -F "name=$DB_NAME" \
+    #                  -F "backup_format=dump" \
+    #                  -o /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump \
+    #                  http://localhost:8069/web/database/backup
+    #   args:
+    #     executable: /bin/bash
+    #   register: backup_result
 
-    - name: Source AWS credentials and copy backup dump to S3
-      shell: |
-        . /home/ejad-sysadmin/.aws_env && \
-        . /home/ejad-sysadmin/.backup_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
-      args:
-        executable: /bin/bash
-      when: backup_result.rc == 0
-      register: s3_upload_result
+    # - name: Source AWS credentials and copy backup dump to S3
+    #   shell: |
+    #     . /home/ejad-sysadmin/.aws_env && \
+    #     . /home/ejad-sysadmin/.backup_env && \
+    #     aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
+    #   args:
+    #     executable: /bin/bash
+    #   when: backup_result.rc == 0
+    #   register: s3_upload_result
 
     # - name: Delete all files and directories inside backup folder after upload
     #   shell: |

@@ -1,6 +1,7 @@
 - hosts: all
   become: true
   tasks:
+    # Step 1: Load environment variables
     - name: Source environment variables from .backup_env
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
@@ -18,6 +19,7 @@
         msg: "DB_NAME is not defined or could not be sourced from /home/ejad-sysadmin/.backup_env"
       when: DB_NAME is undefined
 
+    # Step 2: Create and upload dump backup
     - name: Backup Odoo database dump
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
@@ -30,6 +32,17 @@
         executable: /bin/bash
       register: dump_backup_result
 
+    - name: Upload database dump to S3
+      shell: |
+        . /home/ejad-sysadmin/.aws_env && \
+        . /home/ejad-sysadmin/.backup_env && \
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
+      args:
+        executable: /bin/bash
+      when: dump_backup_result.rc == 0
+      register: dump_s3_upload_result
+
+    # Step 3: Create and upload zip backup
     - name: Backup Odoo database zip
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
@@ -42,6 +55,17 @@
         executable: /bin/bash
       register: zip_backup_result
 
+    - name: Upload database zip to S3
+      shell: |
+        . /home/ejad-sysadmin/.aws_env && \
+        . /home/ejad-sysadmin/.backup_env && \
+        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
+      args:
+        executable: /bin/bash
+      when: zip_backup_result.rc == 0
+      register: zip_s3_upload_result
+
+    # Step 4: Check file sizes
     - name: Get size of dump file
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
@@ -66,23 +90,27 @@
       set_fact:
         zip_file_size: "{{ zip_file_size.stdout | int }}"
 
+    # Step 5: Debug the sizes and condition
     - name: Debug sizes of dump and zip files
       debug:
         msg: 
           - "Dump file size: {{ dump_file_size }} bytes"
           - "Zip file size: {{ zip_file_size }} bytes"
-          - "Condition (dump_file_size > zip_file_size): {{ dump_file_size > zip_file_size }}"
+          - "Condition (dump_file_size > zip_file_size): {{ (dump_file_size | int) > (zip_file_size | int) }}"
 
+    # Step 6: Notify via email if dump size > zip size
     - name: Notify via email if dump size > zip size
       shell: |
         echo "Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
         | mail -s "Backup Size Alert" saber@ejadtech.sa
       args:
         executable: /bin/bash
-      when: dump_file_size > zip_file_size
+      when: (dump_file_size | int) > (zip_file_size | int)
 
+    # Step 7: Cleanup backup folder
     - name: Delete all files in the backup folder after upload
       shell: |
         rm -rf /home/ejad-sysadmin/backup/*
       args:
         executable: /bin/bash
+      when: dump_s3_upload_result.rc == 0 and zip_s3_upload_result.rc == 0

@@ -30,16 +30,6 @@
         executable: /bin/bash
       register: dump_backup_result
 
-    - name: Upload database dump to S3
-      shell: |
-        . /home/ejad-sysadmin/.aws_env && \
-        . /home/ejad-sysadmin/.backup_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
-      args:
-        executable: /bin/bash
-      when: dump_backup_result.rc == 0
-      register: dump_s3_upload_result
-
     - name: Backup Odoo database zip
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
@@ -52,27 +42,17 @@
         executable: /bin/bash
       register: zip_backup_result
 
-    - name: Upload database zip to S3
-      shell: |
-        . /home/ejad-sysadmin/.aws_env && \
-        . /home/ejad-sysadmin/.backup_env && \
-        aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
-      args:
-        executable: /bin/bash
-      when: zip_backup_result.rc == 0
-      register: zip_s3_upload_result
-
     - name: Get size of dump file
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
         stat -c%s "/home/ejad-sysadmin/backup/${DB_NAME}backup$(date +%Y%m%d).dump"
       args:
         executable: /bin/bash
-      register: dump_file_size_raw
+      register: dump_file_size
 
-    - name: Set dump file size fact as integer
+    - name: Set dump file size fact
       set_fact:
-        dump_file_size: "{{ dump_file_size_raw.stdout | int }}"
+        dump_file_size: "{{ dump_file_size.stdout | int }}"
 
     - name: Get size of zip file
       shell: |
@@ -80,11 +60,18 @@
         stat -c%s "/home/ejad-sysadmin/backup/${DB_NAME}backup$(date +%Y%m%d).zip"
       args:
         executable: /bin/bash
-      register: zip_file_size_raw
+      register: zip_file_size
 
-    - name: Set zip file size fact as integer
+    - name: Set zip file size fact
       set_fact:
-        zip_file_size: "{{ zip_file_size_raw.stdout | int }}"
+        zip_file_size: "{{ zip_file_size.stdout | int }}"
+
+    - name: Debug sizes of dump and zip files
+      debug:
+        msg: 
+          - "Dump file size: {{ dump_file_size }} bytes"
+          - "Zip file size: {{ zip_file_size }} bytes"
+          - "Condition (dump_file_size > zip_file_size): {{ dump_file_size > zip_file_size }}"
 
     - name: Notify via email if dump size > zip size
       shell: |
@@ -99,4 +86,3 @@
         rm -rf /home/ejad-sysadmin/backup/*
       args:
         executable: /bin/bash
-      when: dump_s3_upload_result.rc == 0 and zip_s3_upload_result.rc == 0

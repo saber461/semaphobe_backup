@@ -69,6 +69,7 @@
       args:
         executable: /bin/bash
       register: dump_file_size
+      echo "dump_file_size"
 
     - name: Set dump file size fact
       set_fact:
@@ -81,7 +82,8 @@
       args:
         executable: /bin/bash
       register: zip_file_size
-
+      echo "zip_file_size"
+      
     - name: Set zip file size fact
       set_fact:
         zip_file_size: "{{ zip_file_size.stdout | int }}"

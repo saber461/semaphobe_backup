@@ -58,7 +58,7 @@
     - name: Notify via email if dump size > zip size
       shell: |
         echo "Backup dump size ({{ dump_file_stat.stat.size }} bytes) is larger than the zip size ({{ zip_file_stat.stat.size }} bytes)." \
-        | mail -s "Backup Size Alert" recipient@example.com
+        | mail -s "Backup Size Alert" saber@ejadtech.sa
       when: dump_file_stat.stat.size > zip_file_stat.stat.size
       args:
         executable: /bin/bash

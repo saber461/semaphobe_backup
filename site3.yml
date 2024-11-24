@@ -92,7 +92,7 @@
         | mail -s "Backup Size Alert" saber@ejadtech.sa
       args:
         executable: /bin/bash
-      when: dump_file_size < zip_file_size
+      when: dump_file_size > zip_file_size
 
     - name: Delete all files in the backup folder after upload
       shell: |

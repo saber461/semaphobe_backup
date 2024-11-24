@@ -33,6 +33,7 @@
     - name: Upload database dump to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
+        . /home/ejad-sysadmin/.backup_env && \
         aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
@@ -54,6 +55,7 @@
     - name: Upload database zip to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
+        . /home/ejad-sysadmin/.backup_env && \
         aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
       args:
         executable: /bin/bash

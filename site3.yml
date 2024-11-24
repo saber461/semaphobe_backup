@@ -94,13 +94,6 @@
         executable: /bin/bash
       when: dump_file_size < zip_file_size
 
-    - name: Test email notification (unconditional)
-      shell: |
-        echo "This is a test email to verify the mail configuration." \
-        | mail -s "Test Email" saber@ejadtech.sa
-      args:
-        executable: /bin/bash
-
     - name: Delete all files in the backup folder after upload
       shell: |
         rm -rf /home/ejad-sysadmin/backup/*

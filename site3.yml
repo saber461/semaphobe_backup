@@ -89,15 +89,15 @@
     - name: Notify via email if dump size > zip size
       shell: |
         echo "Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
-        | mail -s "Backup Size Alert" saberjouini7@gmail.com
+        | mail -s "Backup Size Alert" saber@ejadtech.sa
       args:
         executable: /bin/bash
-      when: dump_file_size > zip_file_size
+      when: dump_file_size < zip_file_size
 
     - name: Test email notification (unconditional)
       shell: |
         echo "This is a test email to verify the mail configuration." \
-        | mail -s "Test Email" saberjouini7@gmail.com
+        | mail -s "Test Email" saber@ejadtech.sa
       args:
         executable: /bin/bash
 

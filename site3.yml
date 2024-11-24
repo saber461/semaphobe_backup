@@ -88,11 +88,26 @@
       set_fact:
         zip_file_size: "{{ zip_file_size.stdout | int }}"
 
+    - name: Debug dump file size
+      debug:
+        msg: "Dump file size: {{ dump_file_size }}"
+
+    - name: Debug zip file size
+      debug:
+        msg: "Zip file size: {{ zip_file_size }}"
+
     - name: Notify via email if dump size > zip size
       shell: |
         echo "Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
-        | mail -s "Backup Size Alert" saberjouini7@gmail.com
+        | mail -s "Backup Size Alert" recipient@example.com
+      args:
+        executable: /bin/bash
       when: dump_file_size > zip_file_size
+
+    - name: Test email notification (unconditional)
+      shell: |
+        echo "This is a test email to verify the mail configuration." \
+        | mail -s "Test Email" recipient@example.com
       args:
         executable: /bin/bash
 

@@ -1,7 +1,24 @@
 - hosts: all
   become: true
   tasks:
-    - name: Source environment variables and backup Odoo database dump
+    - name: Source environment variables from .backup_env
+      shell: |
+        . /home/ejad-sysadmin/.backup_env && \
+        echo "DB_NAME=$DB_NAME"
+      args:
+        executable: /bin/bash
+      register: backup_env_vars
+
+    - name: Parse DB_NAME from environment variables
+      set_fact:
+        DB_NAME: "{{ backup_env_vars.stdout_lines | select('match', '^DB_NAME=') | map('regex_replace', '^DB_NAME=', '') | first }}"
+
+    - name: Ensure DB_NAME is set
+      fail:
+        msg: "DB_NAME is not defined or could not be sourced from /home/ejad-sysadmin/.backup_env"
+      when: DB_NAME is undefined
+
+    - name: Backup Odoo database dump
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
         curl -X POST -F "master_pwd=$MASTER_PWD" \
@@ -11,19 +28,18 @@
                      http://localhost:8069/web/database/backup
       args:
         executable: /bin/bash
-      register: backup_result
+      register: dump_backup_result
 
-    - name: Source AWS credentials and copy backup dump to S3
+    - name: Upload database dump to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
-        . /home/ejad-sysadmin/.backup_env && \
         aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).dump $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
-      when: backup_result.rc == 0
-      register: s3_upload_result
+      when: dump_backup_result.rc == 0
+      register: dump_s3_upload_result
 
-    - name: Source environment variables and backup Odoo database zip
+    - name: Backup Odoo database zip
       shell: |
         . /home/ejad-sysadmin/.backup_env && \
         curl -X POST -F "master_pwd=$MASTER_PWD" \
@@ -33,39 +49,52 @@
                      http://localhost:8069/web/database/backup
       args:
         executable: /bin/bash
-      register: backup_zip_result
+      register: zip_backup_result
 
-    - name: Source AWS credentials and copy backup zip to S3
+    - name: Upload database zip to S3
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
-        . /home/ejad-sysadmin/.backup_env && \
         aws s3 cp /home/ejad-sysadmin/backup/"$DB_NAME"backup$(date +%Y%m%d).zip $S3_BUCKET_PATH/
       args:
         executable: /bin/bash
-      when: backup_zip_result.rc == 0
-      register: s3_upload_zip_result
+      when: zip_backup_result.rc == 0
+      register: zip_s3_upload_result
 
     - name: Get size of dump file
-      stat:
-        path: "/home/ejad-sysadmin/backup/{{ DB_NAME }}backup{{ lookup('pipe', 'date +%Y%m%d') }}.dump"
-      register: dump_file_stat
+      shell: |
+        . /home/ejad-sysadmin/.backup_env && \
+        stat -c%s "/home/ejad-sysadmin/backup/${DB_NAME}backup$(date +%Y%m%d).dump"
+      args:
+        executable: /bin/bash
+      register: dump_file_size
+
+    - name: Set dump file size fact
+      set_fact:
+        dump_file_size: "{{ dump_file_size.stdout | int }}"
 
     - name: Get size of zip file
-      stat:
-        path: "/home/ejad-sysadmin/backup/{{ DB_NAME }}backup{{ lookup('pipe', 'date +%Y%m%d') }}.zip"
-      register: zip_file_stat
+      shell: |
+        . /home/ejad-sysadmin/.backup_env && \
+        stat -c%s "/home/ejad-sysadmin/backup/${DB_NAME}backup$(date +%Y%m%d).zip"
+      args:
+        executable: /bin/bash
+      register: zip_file_size
+
+    - name: Set zip file size fact
+      set_fact:
+        zip_file_size: "{{ zip_file_size.stdout | int }}"
 
     - name: Notify via email if dump size > zip size
       shell: |
-        echo "Backup dump size ({{ dump_file_stat.stat.size }} bytes) is larger than the zip size ({{ zip_file_stat.stat.size }} bytes)." \
+        echo "Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
         | mail -s "Backup Size Alert" saber@ejadtech.sa
-      when: dump_file_stat.stat.size > zip_file_stat.stat.size
+      when: dump_file_size > zip_file_size
       args:
         executable: /bin/bash
 
-    - name: Delete all files and directories inside backup folder after upload
+    - name: Delete all files in the backup folder after upload
       shell: |
         rm -rf /home/ejad-sysadmin/backup/*
-      when: s3_upload_zip_result.rc == 0
       args:
         executable: /bin/bash
+      when: dump_s3_upload_result.rc == 0 and zip_s3_upload_result.rc == 0

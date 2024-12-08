@@ -101,7 +101,7 @@
     # Step 6: Notify via email if dump size > zip size
     - name: Notify via email if dump size > zip size
       shell: |
-        echo "Server: {{ inventory_hostname }}" \
+        echo "Server: $(cat /etc/hostname)" \
         echo "Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
         | mail -r alertmanager@ejadtech.sa -s "Backup Size Alert" devops@ejadtech.sa
       args:

@@ -99,14 +99,15 @@
           - "Condition (dump_file_size > zip_file_size): {{ (dump_file_size | int) > (zip_file_size | int) }}"
 
     # Step 6: Notify via email if dump size > zip size
-    - name: Notify via email if dump size > zip size
-      shell: |
-        echo "Server: {{ inventory_hostname }}
-    Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
-        | mail -r alertmanager@ejadtech.sa -s "Backup Size Alert" devops@ejadtech.sa
-      args:
-        executable: /bin/bash
-      when: (dump_file_size | int) > (zip_file_size | int)
+   - name: Notify via email if dump size > zip size
+     shell: |
+       echo "Server: {{ inventory_hostname }}
+   Backup dump size ({{ dump_file_size }} bytes) is larger than the zip size ({{ zip_file_size }} bytes)." \
+       | mail -r alertmanager@ejadtech.sa -s "Backup Size Alert" devops@ejadtech.sa
+     args:
+       executable: /bin/bash
+     when: (dump_file_size | int) > (zip_file_size | int)
+
 
 
     # Step 7: Cleanup backup folder

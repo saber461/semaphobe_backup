@@ -109,7 +109,6 @@
       when: (dump_file_size | int) > (zip_file_size | int)
 
 
-
     # Step 7: Cleanup backup folder
     - name: Delete all files in the backup folder after upload
       shell: |

@@ -124,12 +124,15 @@
         . /home/ejad-sysadmin/.aws_env && \
         . /home/ejad-sysadmin/.backup_env && \
         aws s3api list-objects --bucket "${S3_BUCKET_PATH#s3://}" --prefix "${DB_NAME}backup" \
-          --query 'Contents[?contains(Key, `"{{ DB_NAME }}")`].[Key, LastModified]' \
-          --output json | \
-        jq -r 'sort_by(.LastModified) | .[0:-5] | .[].Key' | \
+          --query "Contents[].[Key, LastModified]" \
+          --output text | sort -k2 | head -n -5 | awk '{print $1}' | \
         while read -r object; do
           aws s3 rm "s3://${S3_BUCKET_PATH#s3://}/$object"
         done
       args:
         executable: /bin/bash
       register: cleanup_result
+
+    - name: Debug S3 cleanup result
+      debug:
+        msg: "{{ cleanup_result.stdout }}"

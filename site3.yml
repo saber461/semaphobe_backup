@@ -118,3 +118,31 @@
         executable: /bin/bash
       when: dump_s3_upload_result.rc == 0 and zip_s3_upload_result.rc == 0
 
+    # Step 7: Clean up old .zip backups from S3
+    - name: Clean up old .zip backups from S3
+      shell: |
+        . /home/ejad-sysadmin/.aws_env && \
+        aws s3api list-objects --bucket "{{ s3_bucket_name }}" --prefix "{{ s3_prefix }}" --query "Contents[?ends_with(Key, '.zip')].[Key, LastModified]" --output text | \
+        sort -k2 | head -n -5 | awk '{print $1}' | \
+        while read -r object; do
+          echo "Deleting: $object"
+          aws s3 rm "s3://{{ s3_bucket_name }}/$object"
+        done
+      args:
+        executable: /bin/bash
+      when: zip_s3_upload_result.rc == 0
+
+    # Step 8: Clean up old .dump backups from S3
+    - name: Clean up old .dump backups from S3
+      shell: |
+        . /home/ejad-sysadmin/.aws_env && \
+        aws s3api list-objects --bucket "{{ s3_bucket_name }}" --prefix "{{ s3_prefix }}" --query "Contents[?ends_with(Key, '.dump')].[Key, LastModified]" --output text | \
+        sort -k2 | head -n -5 | awk '{print $1}' | \
+        while read -r object; do
+          echo "Deleting: $object"
+          aws s3 rm "s3://{{ s3_bucket_name }}/$object"
+        done
+      args:
+        executable: /bin/bash
+      when: dump_s3_upload_result.rc == 0
+

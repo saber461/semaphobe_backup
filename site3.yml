@@ -123,7 +123,7 @@
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
         aws s3api list-objects --bucket "$S3_BUCKET_NAME" --prefix "$S3_PREFIX" --query "Contents[?ends_with(Key, '.zip')].[Key, LastModified]" --output text | \
-        sort -k2 | head -n -5 | awk '{print $1}' | \
+        sort -k2 | head -n -10 | awk '{print $1}' | \
         while read -r object; do
           echo "Deleting: $object"
           aws s3 rm "s3://$S3_BUCKET_NAME/$object"
@@ -137,7 +137,7 @@
       shell: |
         . /home/ejad-sysadmin/.aws_env && \
         aws s3api list-objects --bucket "$S3_BUCKET_NAME" --prefix "$S3_PREFIX" --query "Contents[?ends_with(Key, '.dump')].[Key, LastModified]" --output text | \
-        sort -k2 | head -n -5 | awk '{print $1}' | \
+        sort -k2 | head -n -10 | awk '{print $1}' | \
         while read -r object; do
           if [ -n "$object" ]; then
             echo "Deleting: $object"
